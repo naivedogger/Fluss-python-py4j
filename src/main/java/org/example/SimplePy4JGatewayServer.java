@@ -14,11 +14,11 @@ public class SimplePy4JGatewayServer {
      */
     public static void main(String[] args) {
         try {
-            // 创建FlussClientBridge实例作为入口点
-            FlussClientBridge bridge = new FlussClientBridge();
+            // Entry Point for FlussGateway
+            FlussGateway gateway = new FlussGateway();
             
-            // 启动网关服务器
-            int port = 25333; // 默认端口
+            // start the Py4J gateway server
+            int port = 25333;
             if (args.length > 0) {
                 try {
                     port = Integer.parseInt(args[0]);
@@ -27,13 +27,13 @@ public class SimplePy4JGatewayServer {
                 }
             }
             
-            GatewayServer server = new GatewayServer(bridge, port);
+            GatewayServer server = new GatewayServer(gateway, port);
             server.start();
             
-            System.out.println("✓ Py4J网关服务器已启动");
-            System.out.println("✓ 监听端口: " + server.getListeningPort());
-            System.out.println("✓ 入口点: FlussClientBridge");
-            System.out.println("✓ 服务器准备就绪，等待Python客户端连接...");
+            System.out.println("Py4J网关服务器已启动");
+            System.out.println("监听端口: " + server.getListeningPort());
+            System.out.println("入口点: FlussGateway");
+            System.out.println("服务器准备就绪，等待Python客户端连接...");
             
             // 保持服务器运行
             while (true) {

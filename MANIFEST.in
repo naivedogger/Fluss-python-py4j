@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include NOTICE
+recursive-include pyfluss *.py
+recursive-include pyfluss/jars *.jar
+recursive-exclude pyfluss/py4j/tests *
+global-exclude *.pyc
+global-exclude __pycache__

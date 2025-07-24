@@ -1,9 +1,89 @@
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !**/src/main/**/target/
 !**/src/test/**/target/
 
-### IntelliJ IDEA ###
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# pyenv
+.python-version
+
+# pipenv
+Pipfile.lock
+
+# PEP 582
+__pypackages__/
+
+# Celery stuff
+celerybeat-schedule
+celerybeat.pid
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# JAR files (compiled Java artifacts)
+*.jar
+pyfluss/jars/*.jar
+
+# IntelliJ IDEA
 .idea/modules.xml
 .idea/jarRepositories.xml
 .idea/compiler.xml
@@ -12,7 +92,7 @@ target/
 *.iml
 *.ipr
 
-### Eclipse ###
+# Eclipse
 .apt_generated
 .classpath
 .factorypath
@@ -21,7 +101,7 @@ target/
 .springBeans
 .sts4-cache
 
-### NetBeans ###
+# NetBeans
 /nbproject/private/
 /nbbuild/
 /dist/
@@ -31,8 +111,130 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 
-### VS Code ###
+# VS Code
 .vscode/
 
-### Mac OS ###
+# macOS
 .DS_Store
+.AppleDouble
+.LSOverride
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Project specific
+cp.txt
+backup/
+test_output/
+logs/
+*.log
+
+# PyPI build artifacts
+twine.ini
+.pypirc
+
+# PyFluss specific files
+# JAR文件 - 编译时生成，不应该提交到版本控制
+pyfluss/jars/*.jar
+!pyfluss/jars/__init__.py
+
+# Python编译文件
+pyfluss/__pycache__/
+pyfluss/**/__pycache__/
+
+# 测试生成的文件
+test_output/
+test_results/
+
+# 开发时的临时文件
+dev/output/
+dev/temp/
+
+# 本地配置文件
+local_config.py
+config_local.py
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 临时构建文件
+build_temp/
+
+# 本地环境变量文件
+.env.local
+.env.development
+
+# 额外的开发和构建文件
+# 构建脚本的日志输出
+build.log
+install.log
+
+# Maven相关
+.mvn/
+mvnw
+mvnw.cmd
+
+# Gradle相关（如果将来使用）
+.gradle/
+gradle/
+gradlew
+gradlew.bat
+
+# Python虚拟环境目录
+venv*/
+env*/
+
+# 运行时生成的配置文件
+runtime_config.json
+runtime_config.yaml
+
+# 性能测试结果
+benchmark_results/
+performance_test_*.json
+
+# 调试文件
+debug_*.log
+debug_*.txt
+
+# 临时文件和备份文件
+*.bak
+*.tmp
+*.temp
+*~
+
+# JetBrains IDE相关
+.idea/workspace.xml
+.idea/usage.statistics.xml
+.idea/shelf/
+
+# PyCharm相关
+.idea/inspectionProfiles/
+.idea/dictionaries/

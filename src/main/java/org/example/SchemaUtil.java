@@ -3,6 +3,7 @@ package org.example;
 import com.alibaba.fluss.metadata.Schema;
 import com.alibaba.fluss.types.DataType;
 import com.alibaba.fluss.types.RowType;
+import com.alibaba.fluss.types.DataTypeRoot;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -176,5 +177,108 @@ public class SchemaUtil {
         }
         
         return result;
+    }
+    
+    /**
+     * 将InternalRow转换为字符串
+     * @param row 内部行数据
+     * @param rowType 行类型
+     * @return 字符串表示
+     */
+    public static String convertRowToString(com.alibaba.fluss.row.InternalRow row, RowType rowType) {
+        if (row == null) {
+            return "null";
+        }
+        
+        try {
+            StringBuilder sb = new StringBuilder();
+            sb.append("{");
+            
+            List<String> fieldNames = rowType.getFieldNames();
+            List<DataType> fieldTypes = rowType.getChildren();
+            
+            for (int i = 0; i < fieldNames.size(); i++) {
+                if (i > 0) {
+                    sb.append(", ");
+                }
+                
+                String fieldName = fieldNames.get(i);
+                DataType fieldType = fieldTypes.get(i);
+                
+                sb.append("\"").append(fieldName).append("\": ");
+                
+                // 根据字段类型获取值
+                Object value = getFieldValue(row, i, fieldType);
+                if (value == null) {
+                    sb.append("null");
+                } else if (value instanceof String) {
+                    sb.append("\"").append(value).append("\"");
+                } else {
+                    sb.append(value.toString());
+                }
+            }
+            
+            sb.append("}");
+            return sb.toString();
+            
+        } catch (Exception e) {
+            return "Error converting row: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * 根据字段类型获取字段值
+     * @param row 行数据
+     * @param index 字段索引
+     * @param dataType 数据类型
+     * @return 字段值
+     */
+    private static Object getFieldValue(com.alibaba.fluss.row.InternalRow row, int index, DataType dataType) {
+        try {
+            if (row.isNullAt(index)) {
+                return null;
+            }
+            
+            // 使用简化的值获取方法
+            DataTypeRoot typeRoot = dataType.getTypeRoot();
+            
+            switch (typeRoot) {
+                case INTEGER:
+                    return row.getInt(index);
+                case BIGINT:
+                    return row.getLong(index);
+                case CHAR:
+                case STRING:
+                    return row.getString(index).toString();
+                case BOOLEAN:
+                    return row.getBoolean(index);
+                case FLOAT:
+                    return row.getFloat(index);
+                case DOUBLE:
+                    return row.getDouble(index);
+                case DATE:
+                    return row.getInt(index); // Date stored as int
+                default:
+                    // 对于其他复杂类型，尝试转为字符串
+                    try {
+                        return row.getString(index).toString();
+                    } catch (Exception e2) {
+                        return "Unsupported type: " + typeRoot;
+                    }
+            }
+        } catch (Exception e) {
+            return "Error reading field: " + e.getMessage();
+        }
+    }
+    
+    /**
+     * 公共方法：获取字段值（供 Predicate 过滤使用）
+     * @param row 内部行数据
+     * @param index 字段索引
+     * @param dataType 数据类型
+     * @return 字段值
+     */
+    public static Object getFieldValuePublic(com.alibaba.fluss.row.InternalRow row, int index, DataType dataType) {
+        return getFieldValue(row, index, dataType);
     }
 }

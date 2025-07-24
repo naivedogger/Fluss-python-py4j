@@ -1,177 +1,626 @@
-# Fluss Python Py4J 桥接器
+# PyFluss - Python SDK for Apache Fluss
 
-这个项目通过Py4J创建了一个Java-Python桥接器，让Python客户端能够使用Fluss数据库的功能。
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://python.org)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Build Status](https://img.shields.io/badge/build-passing-green.svg)](#)
 
-## 项目结构
+PyFluss is a comprehensive Python SDK for [Apache Fluss](https://fluss.apache.org), providing native Python interfaces to interact with Fluss's real-time data lake storage. Built with modern Python best practices and featuring efficient Py4J-based Java bridge for optimal performance.
 
-```
-fluss-python-py4j/
-├── pom.xml                          # Maven配置文件
-├── src/main/java/org/example/
-│   ├── FlussClientBridge.java       # Fluss客户端桥接器
-│   ├── FlussDataReader.java         # Fluss数据读取器
-│   ├── FlussDataWriter.java         # Fluss数据写入器
-│   ├── Py4JGatewayServer.java      # Py4J网关服务器
-│   └── SimplePy4JGatewayServer.java # 简化的Py4J网关服务器
-├── test_data_writer.py              # Python测试脚本
-└── README.md                        # 使用说明
-```
+## 🚀 Features
 
-## 依赖项
+- **🔌 Native Fluss Integration**: Direct integration with Apache Fluss using TableBucket architecture
+- **🐍 Pythonic API**: Clean, intuitive Python interfaces with type hints and modern async support
+- **⚡ High Performance**: Efficient Py4J bridge for seamless Python-Java interoperability
+- **📊 Data Ecosystem**: Built-in support for pandas, PyArrow, and DuckDB integration
+- **🛡️ Production Ready**: Comprehensive error handling, connection management, and testing
+- **🔧 Developer Friendly**: Easy setup, comprehensive documentation, and debugging tools
 
-- **Fluss Client**: 用于连接Fluss数据库
-- **Py4J**: Java-Python桥接库
-- **JDK 8+**: Java运行环境
-- **Python 3.x**: Python运行环境
+## 📦 Installation
 
-## 安装和设置
-
-### 1. 构建Java项目
+### From Source
 
 ```bash
-# 编译项目
-mvn clean compile
-
-# 或者打包成JAR文件
-mvn clean package
+git clone https://github.com/your-org/fluss-python-py4j.git
+cd fluss-python-py4j
+pip install .
 ```
 
-### 2. 安装Python依赖
+### Development Installation
 
 ```bash
-pip install py4j
+# Clone repository
+git clone https://github.com/your-org/fluss-python-py4j.git
+cd fluss-python-py4j
+
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate  # Linux/macOS
+# .venv\Scripts\activate  # Windows
+
+# Install in development mode
+pip install -e ".[dev]"
 ```
 
-## 使用方法
-
-### 启动Java网关服务器
-
-在一个终端中运行：
+### Optional Dependencies
 
 ```bash
-# 使用默认端口25333
-java -cp target/classes org.example.Py4JGatewayServer
+# For pandas support
+pip install ".[pandas]"
 
-# 或指定端口
-java -cp target/classes org.example.Py4JGatewayServer 25334
+# For PyArrow support  
+pip install ".[arrow]"
+
+# For all integrations
+pip install ".[all]"
 ```
 
-### 运行Python客户端
+## 🎯 Quick Start
 
-在另一个终端中运行：
-
-```bash
-# 使用默认Fluss服务器地址运行测试脚本
-python test_data_writer.py
-
-# 或指定服务器地址
-python test_data_writer.py localhost:9123
-```
-
-## 功能特性
-
-### FlussClientBridge 提供的功能：
-
-1. **连接管理**
-   - `connect(bootstrapServers)`: 连接到Fluss集群
-   - `isConnected()`: 检查连接状态
-   - `close()`: 关闭连接
-
-2. **数据库和表操作**
-   - `listDatabases()`: 列出所有数据库
-   - `listTables(database)`: 列出指定数据库中的表
-   - `getTable(database, tableName)`: 获取表实例
-
-3. **读写操作**
-   - `createUpsertWriter(database, tableName)`: 创建更新写入器
-   - `createScanReader(database, tableName)`: 创建扫描读取器
-
-### Python客户端功能：
-
-- 自动连接到Py4J网关
-- 封装所有Java桥接器功能
-- 提供友好的Python接口
-- 错误处理和连接管理
-
-## 使用示例
-
-### Java端示例
-
-```java
-FlussClientBridge bridge = new FlussClientBridge();
-bridge.connect("localhost:9123");
-
-List<String> databases = bridge.listDatabases();
-for (String db : databases) {
-    System.out.println("Database: " + db);
-    List<String> tables = bridge.listTables(db);
-    for (String table : tables) {
-        System.out.println("  Table: " + table);
-    }
-}
-
-bridge.close();
-```
-
-### Python端示例
+### Basic Usage
 
 ```python
-from py4j.java_gateway import JavaGateway
+import pyfluss
 
-# 连接到网关
-gateway = JavaGateway()
-bridge = gateway.entry_point
+# Create connection to Fluss
+connection = pyfluss.connect(
+    host='localhost',
+    port=9123
+)
 
-# 连接到Fluss
-bridge.connect("localhost:9123")
+# Get catalog and table
+catalog = connection.catalog
+table = catalog.get_table('my_database.my_table')
 
-# 列出数据库
-databases = bridge.listDatabases()
-for db in databases:
-    print(f"Database: {db}")
-    tables = bridge.listTables(db)
-    for table in tables:
-        print(f"  Table: {table}")
+# Read data using Fluss-native TableBucket approach
+read_builder = table.new_read_builder()
+table_scan = read_builder.new_scan()
+plan = table_scan.plan()
 
-# 关闭连接
-bridge.close()
+# Process table buckets (Fluss's native partitioning)
+for bucket in plan.table_buckets():
+    reader = read_builder.new_read()
+    data = reader.read_batches([bucket])
+    for record in data:
+        print(record)
+
+# Write data
+write_builder = table.new_batch_write_builder()
+writer = write_builder.new_write()
+
+# Write records and commit
+import pandas as pd
+df = pd.DataFrame({'id': [1, 2, 3], 'name': ['Alice', 'Bob', 'Charlie']})
+writer.write_pandas(df)
+commit_messages = writer.prepare_commit()
+
+committer = write_builder.new_commit()
+committer.commit(commit_messages)
+
+# Close connection
+connection.close()
 ```
 
-## 故障排除
+### Advanced Data Processing
 
-### 常见问题
+```python
+import pyfluss
+import pandas as pd
 
-1. **连接失败**
-   - 确保Fluss服务器正在运行
-   - 检查服务器地址和端口是否正确
+# Connect to Fluss
+conn = pyfluss.connect('localhost:9123')
+table = conn.catalog.get_table('analytics.user_events')
 
-2. **Py4J网关连接失败**
-   - 确保Java网关服务器正在运行
-   - 检查端口是否被占用
+# Create filtered read with projection
+read_builder = (table.new_read_builder()
+    .with_filter(pyfluss.filters.greater_than('timestamp', '2024-01-01'))
+    .with_projection(['user_id', 'event_type', 'timestamp'])
+    .with_limit(1000))
 
-3. **依赖项错误**
-   - 运行 `mvn clean compile` 重新编译
-   - 确保所有依赖项都已正确安装
+# Read to pandas DataFrame
+df = read_builder.to_pandas()
+print(f"Read {len(df)} records")
 
-### 调试模式
+# Process with PyArrow for better performance
+arrow_table = read_builder.to_arrow()
+processed_data = arrow_table.to_pandas().groupby('event_type').size()
+print(processed_data)
+```
 
-启动网关服务器时可以查看详细日志：
+## 🏗️ Architecture
+
+### Project Structure
+
+```
+pyfluss/
+├── __init__.py              # Main exports and high-level API
+├── version.py               # Version management
+├── connection.py            # Connection management
+├── reader.py               # Data reading utilities
+├── writer.py               # Data writing utilities
+├── cli.py                  # Command-line interface
+├── api/                    # Core API abstractions
+│   ├── catalog.py          # Catalog operations
+│   ├── table.py            # Table interface
+│   ├── read_builder.py     # Read operations builder
+│   ├── write_builder.py    # Write operations builder
+│   ├── fluss_table_read.py # Fluss-native table reading
+│   ├── table_scan.py       # Table scanning with TableBuckets
+│   ├── predicate.py        # Query predicates and filters
+│   ├── schema.py           # Schema definitions
+│   └── ...
+├── py4j/                   # Java bridge implementation
+│   ├── java_implementation.py  # Core Py4J bridge
+│   ├── java_gateway.py     # Gateway management
+│   ├── gateway_server.py   # Gateway server
+│   ├── util/               # Utilities and helpers
+│   └── tests/              # Integration tests
+└── jars/                   # Java dependencies
+    └── fluss-python-py4j-*.jar
+```
+
+### Fluss Integration
+
+PyFluss is built specifically for Apache Fluss and uses Fluss's native concepts:
+
+- **TableBucket**: Fluss's partitioning mechanism (not Paimon's Split concept)
+- **Native Streaming**: Direct integration with Fluss's streaming capabilities
+- **Real-time Processing**: Support for Fluss's real-time data processing
+- **Efficient Serialization**: Optimized data transfer using Fluss formats
+
+## 🛠️ Development
+
+### Prerequisites
+
+- **Python 3.8+**
+- **Java 11+** (recommended) or Java 8+
+- **Maven 3.6+**
+- **Apache Fluss** (for testing)
+
+### Development Setup
 
 ```bash
-java -cp target/classes org.example.Py4JGatewayServer
+# Clone repository
+git clone https://github.com/your-org/fluss-python-py4j.git
+cd fluss-python-py4j
+
+# Setup Python environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -e ".[dev,test,arrow,pandas]"
+
+# Build Java components
+mvn clean package -DskipTests
+
+# Copy JAR to Python package
+cp target/fluss-python-py4j-*.jar pyfluss/jars/
 ```
 
-## 扩展功能
+### Running Tests
 
-可以通过以下方式扩展桥接器：
+```bash
+# Run complete test suite
+python test_complete_workflow.py
 
-1. 在`FlussClientBridge`中添加更多Fluss客户端功能
-2. 在Python客户端中添加更高级的封装
-3. 添加异步操作支持
-4. 实现连接池管理
+# Run unit tests
+python -m pytest pyfluss/py4j/tests/ -v
 
-## 注意事项
+# Run with coverage
+python -m pytest pyfluss/py4j/tests/ --cov=pyfluss --cov-report=html
 
-- 确保Java网关服务器在Python客户端启动之前运行
-- 网关服务器默认监听25333端口
-- 建议在生产环境中使用连接池和错误重试机制
+# Lint and type checking
+flake8 pyfluss/
+mypy pyfluss/
+```
+
+### Building and Packaging
+
+```bash
+# Build package using our script
+./build_package.sh
+
+# Manual build
+python -m build
+
+# Install locally
+pip install dist/pyfluss-*.whl
+```
+
+## 📚 API Reference
+
+### Connection Management
+
+```python
+import pyfluss
+
+# Direct connection
+conn = pyfluss.connect('localhost:9123')
+
+# Connection with configuration
+conn = pyfluss.connect({
+    'host': 'localhost',
+    'port': 9123,
+    'timeout': 30,
+    'max_retries': 3
+})
+
+# Using catalog directly
+catalog = pyfluss.Catalog.create({
+    'fluss.connection.host': 'localhost',
+    'fluss.connection.port': '9123'
+})
+```
+
+### Catalog Operations
+
+```python
+# List databases
+databases = catalog.list_databases()
+
+# Database operations
+catalog.create_database('analytics', ignore_if_exists=True)
+database = catalog.get_database('analytics')
+
+# Table operations
+tables = catalog.list_tables('analytics')
+table = catalog.get_table('analytics.user_events')
+
+# Schema information
+schema = table.schema()
+print(f"Fields: {schema.field_names}")
+print(f"Primary keys: {schema.primary_keys}")
+```
+
+### Reading Data
+
+```python
+# Basic reading
+table = catalog.get_table('db.table')
+read_builder = table.new_read_builder()
+
+# Apply filters and projections
+filtered_reader = (read_builder
+    .with_filter(pyfluss.filters.equal('status', 'active'))
+    .with_projection(['id', 'name', 'created_at'])
+    .with_limit(1000))
+
+# Read using table buckets (Fluss native)
+scan = filtered_reader.new_scan()
+plan = scan.plan()
+table_buckets = plan.table_buckets()
+
+# Convert to different formats
+fluss_reader = filtered_reader.new_read()
+df = fluss_reader.to_pandas_from_buckets(table_buckets)
+arrow_table = fluss_reader.to_arrow_from_buckets(table_buckets)
+
+# Stream processing
+for record_batch in fluss_reader.read_batches(table_buckets):
+    # Process each batch
+    process_batch(record_batch)
+```
+
+### Writing Data
+
+```python
+# Batch writing
+table = catalog.get_table('db.table')
+write_builder = table.new_batch_write_builder()
+
+# Configure write options
+writer = write_builder.overwrite().new_write()
+
+# Write pandas DataFrame
+import pandas as pd
+df = pd.DataFrame({
+    'id': [1, 2, 3],
+    'name': ['Alice', 'Bob', 'Charlie'],
+    'score': [95.5, 87.2, 92.8]
+})
+writer.write_pandas(df)
+
+# Write PyArrow table
+import pyarrow as pa
+table_data = pa.table({
+    'id': [4, 5, 6],
+    'name': ['David', 'Eve', 'Frank'],
+    'score': [88.1, 94.3, 90.7]
+})
+writer.write_arrow(table_data)
+
+# Commit changes
+commit_messages = writer.prepare_commit()
+committer = write_builder.new_commit()
+committer.commit(commit_messages)
+writer.close()
+```
+
+### PyArrow Schema Integration
+
+PyFluss provides seamless integration with PyArrow schemas for efficient data processing:
+
+```python
+import pyarrow as pa
+import pyfluss
+from pyfluss.api import Schema, ArrowSchema
+
+# Create a PyArrow schema
+arrow_schema = pa.schema([
+    pa.field('customer_id', pa.int64(), nullable=False),
+    pa.field('order_id', pa.string(), nullable=False),
+    pa.field('product_name', pa.string(), nullable=False),
+    pa.field('quantity', pa.int32(), nullable=False),
+    pa.field('unit_price', pa.decimal128(10, 2), nullable=False),
+    pa.field('order_date', pa.timestamp('us'), nullable=False),
+    pa.field('is_premium', pa.bool_(), nullable=False)
+])
+
+# Convert to Fluss schema
+fluss_schema = Schema.from_arrow_schema(arrow_schema)
+print(f"Converted schema with {fluss_schema.get_field_count()} fields")
+print(f"Field types: {fluss_schema.get_field_types()}")
+
+# Add primary keys
+schema_with_pk = fluss_schema.with_primary_keys(['customer_id', 'order_id'])
+print(f"Primary keys: {schema_with_pk.get_primary_keys()}")
+
+# Create a subset for analytics
+analytics_schema = fluss_schema.select(['customer_id', 'product_name', 'quantity', 'unit_price'])
+print(f"Analytics fields: {analytics_schema.get_field_names()}")
+
+# Convert back to PyArrow for data processing
+back_to_arrow = fluss_schema.to_arrow_schema()
+assert arrow_schema.equals(back_to_arrow)
+
+# Schema validation
+validation = fluss_schema.validate()
+print(f"Schema valid: {validation['valid']}")
+
+# Create schema from dictionary
+schema_dict = {
+    'fields': [
+        {'name': 'id', 'type': 'int64', 'nullable': False},
+        {'name': 'name', 'type': 'string', 'nullable': True},
+        {'name': 'score', 'type': 'float64', 'nullable': True}
+    ],
+    'primary_key': ['id']
+}
+
+from pyfluss.api import create_schema_from_dict
+dict_schema = create_schema_from_dict(schema_dict)
+print(f"Schema from dict: {dict_schema.get_field_types()}")
+```
+
+## ⚙️ Configuration
+
+### Connection Configuration
+
+```python
+# Basic connection
+config = {
+    'host': 'localhost',
+    'port': 9123,
+    'timeout': 30,
+    'database': 'default'
+}
+
+# Advanced Fluss configuration
+config = {
+    'fluss.connection.host': 'localhost',
+    'fluss.connection.port': '9123',
+    'fluss.connection.timeout': '30s',
+    'fluss.connection.retry.max': '3',
+    'fluss.client.buffer.size': '64MB',
+    'fluss.client.batch.size': '1000'
+}
+```
+
+### Py4J Gateway Configuration
+
+```python
+# Gateway settings
+config = {
+    'py4j.gateway.port': 25333,
+    'py4j.gateway.auto_start': True,
+    'py4j.java.path': '/usr/bin/java',
+    'py4j.max.workers': 4
+}
+```
+
+### Performance Tuning
+
+```python
+# For large data processing
+config = {
+    'fluss.read.batch.size': 10000,
+    'fluss.write.buffer.size': '128MB',
+    'py4j.max.workers': 8,
+    'arrow.buffer.size': '256MB'
+}
+```
+
+## 🎯 Examples
+
+### Complete Workflow Example
+
+```python
+import pyfluss
+import pandas as pd
+
+# 1. Connect to Fluss
+conn = pyfluss.connect('localhost:9123')
+
+# 2. Setup database and table
+catalog = conn.catalog
+catalog.create_database('analytics', ignore_if_exists=True)
+
+# 3. Create sample data
+users_data = pd.DataFrame({
+    'user_id': range(1, 101),
+    'username': [f'user_{i:03d}' for i in range(1, 101)],
+    'email': [f'user{i:03d}@example.com' for i in range(1, 101)],
+    'age': [20 + (i % 50) for i in range(1, 101)],
+    'city': ['Beijing', 'Shanghai', 'Guangzhou', 'Shenzhen'] * 25
+})
+
+# 4. Write data
+table = catalog.get_table('analytics.users')
+write_builder = table.new_batch_write_builder()
+writer = write_builder.new_write()
+writer.write_pandas(users_data)
+
+# Commit the write
+commit_messages = writer.prepare_commit()
+committer = write_builder.new_commit()
+committer.commit(commit_messages)
+writer.close()
+
+# 5. Read and analyze data
+read_builder = table.new_read_builder()
+filtered_data = (read_builder
+    .with_filter(pyfluss.filters.greater_than('age', 30))
+    .with_projection(['user_id', 'username', 'city'])
+    .to_pandas())
+
+print(f"Found {len(filtered_data)} users over 30")
+print(filtered_data.head())
+
+# 6. Close connection
+conn.close()
+```
+
+### Real-time Processing Example
+
+```python
+import pyfluss
+
+def process_streaming_data():
+    conn = pyfluss.connect('localhost:9123')
+    table = conn.catalog.get_table('events.user_actions')
+    
+    # Create streaming reader
+    read_builder = table.new_read_builder()
+    reader = read_builder.new_read()
+    
+    # Process in real-time
+    scan = read_builder.new_scan()
+    plan = scan.plan()
+    
+    for bucket in plan.table_buckets():
+        for batch in reader.read_batches([bucket]):
+            # Process each batch in real-time
+            process_user_actions(batch)
+            
+    conn.close()
+
+def process_user_actions(batch):
+    # Your real-time processing logic here
+    for record in batch:
+        print(f"Processing action: {record}")
+```
+
+## 🤝 Contributing
+
+We welcome contributions to PyFluss! Here's how to get started:
+
+### Development Workflow
+
+1. **Fork the repository**
+
+   ```bash
+   git clone https://github.com/your-username/fluss-python-py4j.git
+   cd fluss-python-py4j
+   ```
+
+2. **Set up development environment**
+
+   ```bash
+   python -m venv .venv
+   source .venv/bin/activate
+   pip install -e ".[dev,test]"
+   ```
+
+3. **Make your changes**
+   - Add new features or fix bugs
+   - Write tests for your changes
+   - Update documentation as needed
+
+4. **Test your changes**
+
+   ```bash
+   python test_complete_workflow.py
+   python -m pytest pyfluss/py4j/tests/
+   ```
+
+5. **Submit a pull request**
+   - Create a clear description of your changes
+   - Reference any related issues
+   - Ensure all tests pass
+
+### Code Standards
+
+- Follow PEP 8 for Python code style
+- Add type hints for all public APIs
+- Write docstrings for all public functions
+- Maintain test coverage above 80%
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+#### Connection Failed
+
+```python
+# Check if Fluss server is running
+# Verify host and port configuration
+conn = pyfluss.connect('localhost:9123', timeout=60)
+```
+
+#### Java Gateway Issues
+
+```bash
+# Ensure Java is installed and accessible
+java -version
+
+# Check if gateway port is available
+netstat -an | grep 25333
+```
+
+#### Memory Issues with Large Data
+
+```python
+# Process data in smaller batches
+read_builder = table.new_read_builder().with_limit(10000)
+# Increase JVM memory: -Xmx4g
+```
+
+### Debug Mode
+
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Enable PyFluss debug logging
+pyfluss.set_log_level('DEBUG')
+```
+
+## 📄 License
+
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+
+## 🔗 Links
+
+- **Documentation**: [Apache Fluss Documentation](https://fluss.apache.org)
+- **Issues**: [GitHub Issues](https://github.com/your-org/fluss-python-py4j/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/fluss-python-py4j/discussions)
+
+## 🙏 Acknowledgments
+
+This project is inspired by:
+
+- [Apache Fluss](https://github.com/apache/fluss)
+
+---
+
+Built with ❤️ for the Apache Fluss community
